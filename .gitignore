@@ -1,0 +1,6 @@
+python/data
+Notes.txt
+*api_key*
+*__pycache__*
+junk/
+*.DS_Store*
