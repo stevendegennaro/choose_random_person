@@ -10,9 +10,11 @@ import requests
 from bs4 import BeautifulSoup
 import geopandas as gpd
 
-#### Main function for downloading the census data, 
-#### first by state, then by county, then by block
+
 def get_census_data():
+    '''Main function for downloading the census data, 
+        first by state, then by county, then by block'''
+
     with open('census_api_key.txt') as f:
         API_KEY = f.readline()
 
@@ -142,11 +144,12 @@ def get_census_data():
             print(response.status_code)
             sys.exit()
 
-### Tests the census data that we downloaded for internal consistency,
-### then draws random blocks from the data weighted by population and compares
-### them to the actual populations of those blocks. If working properly,
-### this should just be a straight line though the origin (with scatter)
+
 def test_census_data():
+    '''Tests the census data that we downloaded for internal consistency,
+        then draws random blocks from the data weighted by population and compares
+        them to the actual populations of those blocks. If working properly,
+        this should just be a straight line though the origin (with scatter)'''
 
     # Read in the dataframes for the states and the blocks
     blocks_df = pd.read_csv('data/blocks.csv',dtype={'FIPS': str})
@@ -194,8 +197,10 @@ def test_census_data():
     plt.yscale('log')
     plt.show()
 
-### Function for downloading all of the shapefules from census 2020 ###
+
 def download_shape_files():
+    '''Function for downloading all of the shapefiles from census 2020'''
+
     print("Downloading shape files")
     site_address = "https://www2.census.gov/geo/tiger/TIGER2020/TABBLOCK20/"
     response = requests.get(site_address)
@@ -219,10 +224,11 @@ def download_shape_files():
                 for chunk in response.iter_content(chunk_size=819200):
                     file.write(chunk)
 
-# Uses the blocks.csv file and the shape files for each state and
-# creates a lookup table so that we can look up the shapefile
-# quickly by row number if we know the FIPS #.
+
 def make_shape_lookup():
+    '''Uses the blocks.csv file and the shape files for each state and
+        creates a lookup table so that we can look up the shapefiles
+        quickly by row number if we know the FIPS number.'''
 
     print("Generating lookup table")
     blocks_df = pd.read_csv('data/blocks.csv',dtype={'FIPS': str})

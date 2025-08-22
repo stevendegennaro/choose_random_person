@@ -11,8 +11,9 @@ import contextily as cx
 import textalloc as ta
 import datetime as dt
 
-# Function to randomly choose a latitude and longitude within a given ploygon
 def get_random_location(polygon: Polygon) -> Point:
+    '''Randomly chooses a latitude and longitude within a given ploygon'''
+
     # Find the northest, southest, eastest, and westest points in the block
     min_x, min_y, max_x, max_y = polygon.bounds
     # Draw a random point within those bounds
@@ -23,9 +24,11 @@ def get_random_location(polygon: Polygon) -> Point:
         point = Point([np.random.uniform(min_x, max_x), np.random.uniform(min_y, max_y)])
     return point
 
-# Function to load the lookup table created by make_shape_lookup.py
-# Also sets the random seed (if provided)
+
 def load_lookup(seed:int = None) -> None:
+    '''Loads the lookup table created by make_shape_lookup.py
+        Also sets the random seed (if provided)'''
+
     # If the user provides a seed, use it.
     if seed:
         np.random.seed(seed)
@@ -35,10 +38,11 @@ def load_lookup(seed:int = None) -> None:
         global lookup_df
         lookup_df = pd.read_csv('data/lookup.csv',dtype={'FIPS': str})
 
-# Function to use the lookup table to draw a random group of 
-# lattitudes and longitudes in the U.S., weighted by population 
-# Requires call to load_lookup() first
+
 def get_random_people(n_samples:int = 25) -> pd.DataFrame:
+    '''Uses the lookup table to draw a random group of lattitudes and longitudes
+    in the U.S., weighted by population. Requires call to load_lookup() first'''
+
 
     global lookup_df
 
@@ -66,19 +70,12 @@ def get_random_people(n_samples:int = 25) -> pd.DataFrame:
 
     return sample
 
-# Plots the location of a person
-def plot_location(person: pd.DataFrame, ax: plt.Axes,color="black") -> None:
-    x,y = person['polygon'].exterior.xy
-    ax.plot(x,y,color=color)
-    ax.plot(person['location'].x,person['location'].y,marker="+",color=color)
 
-def get_radius():
-    return np.random.normal(1200,100)
-
-# main function to create the final file that I need, which is a list of 
-# 100 randomly-drawn locations in the U.S. weighted by population
-# output in json format so they can be plotted by the Google Maps API
 def create_cameras_json(filename: str, n_samples: int = 100):
+    ''' main function to create the final file that I need, which is a list of 
+    n_samples randomly-drawn locations in the U.S., weighted by population,
+    with a random radius for each to represent a circular area around that point.
+    Output in json format.'''
 
     if os.path.isfile(filename):
         print(f'File "{filename}" already exists. Exiting.')
@@ -91,7 +88,7 @@ def create_cameras_json(filename: str, n_samples: int = 100):
         try:
             cameras_dict_list.append({'lat':row['location'].y,
                                       'lng':row['location'].x,
-                                      'radius':get_radius()})
+                                      'radius':np.random.normal(1200,100)})
         except:
             print(row)
             sys.exit()
@@ -257,8 +254,17 @@ def plot_US_cameras(n: int, seed: int = None, hit_fraction = 0.8, add_fraction =
 #### Testing Functions ####
 ###########################
 
-# Test function to make sure we are drawing random blocks
+def plot_location(person: pd.DataFrame, ax: plt.Axes,color="black") -> None:
+    '''Plots the location of a person within a census polygon'''
+    
+    x,y = person['polygon'].exterior.xy
+    ax.plot(x,y,color=color)
+    ax.plot(person['location'].x,person['location'].y,marker="+",color=color)
+
+
 def test_blocks() -> None:
+    '''Test function to make sure we are drawing random blocks'''
+
     load_lookup()
 
     # Get 25 random census blocks
@@ -277,8 +283,9 @@ def test_blocks() -> None:
     fig.suptitle("Randomly Chosen Census Blocks with\nRandomly Chosen Position Within Block")
     plt.show()
 
-# Tests whether we are drawing randomly from within a block properly
+
 def test_shape(person,n):
+    '''Tests whether we are drawing randomly from within a block properly'''
     x,y = person['polygon'].exterior.xy
     locations = [get_random_location(person['polygon']) for _ in range(n)]
     xs = [location.x for location in locations]
@@ -290,8 +297,9 @@ def test_shape(person,n):
     plt.ylabel("Latitude")
     plt.show()
 
-# Plots a histogram of the populations of every block in the census
+
 def block_population_hist(blocks_df):
+    '''Plots a histogram of the populations of every block in the census'''
     # blocks_df = pd.read_csv('data/blocks.csv',dtype={'FIPS': str})
     plt.hist(blocks_df['population'], bins=200,color="midnightblue",edgecolor="k")
     plt.yscale('log')
